@@ -74,7 +74,8 @@
         input {
             flex: 1;
             min-width: 0;
-            padding: 12px 20px;
+            height: 46px;
+            padding: 0 20px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 0.95rem;
@@ -97,7 +98,7 @@
         .error-message {
             display: none;
             position: absolute;
-            top: 52px; /* Positioned right below the input/button row */
+            top: 50px; /* Positioned right below the input/button row */
             left: 0;
             color: var(--error-color);
             font-size: 0.85rem;
@@ -110,7 +111,7 @@
         .captcha-container {
             display: block;
             position: absolute;
-            top: 75px; /* Positioned below the error message */
+            top: 73px; /* Positioned below the error message */
             left: 0;
             width: 100%;
             min-height: 65px;
@@ -119,7 +120,8 @@
         }
 
         button {
-            padding: 12px 24px;
+            height: 42.5px;
+            padding: 0 24px;
             background-color: var(--accent-color);
             color: white;
             border: none;
@@ -148,12 +150,14 @@
 
         .thank-you {
             display: none;
+            height: 46px;
+            align-items: center;
+            justify-content: center;
             font-size: 1.25rem;
             color: var(--accent-color);
             font-weight: 600;
             text-align: center;
             animation: fadeIn 0.5s ease-out;
-            padding: 12px 0; /* Matches the vertical space of the input/button */
         }
 
         /* Honeypot - Hidden from humans */
@@ -163,9 +167,18 @@
             top: -5000px;
         }
 
+        .fade-out {
+            animation: fadeOut 0.3s ease-in forwards;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
         }
 
         @keyframes slideDown {
@@ -183,13 +196,14 @@
                 width: 100%;
             }
             .error-message {
-                top: 105px;
+                top: 104.5px;
             }
             .captcha-container {
-                top: 130px;
+                top: 129.5px;
             }
             .thank-you {
-                padding: 40px 0; /* Matches the taller stacked form on mobile */
+                height: 100.5px; /* Matches the taller stacked form on mobile (46+12+42.5) */
+                padding: 0;
             }
         }
     </style>
@@ -300,17 +314,22 @@
                     body: formData
                 });
 
-                // Success UI
-                notifyMeRow.style.display = 'none';
-                captchaBox.style.display = 'none';
+                // Smooth Transition to Success UI
+                notifyMeRow.classList.add('fade-out');
+                captchaBox.classList.add('fade-out');
                 errorMsg.style.display = 'none';
-                thankYouMsg.style.display = 'block';
+
+                setTimeout(() => {
+                    notifyMeRow.style.display = 'none';
+                    captchaBox.style.display = 'none';
+                    thankYouMsg.style.display = 'flex';
+                }, 300); // Matches fadeOut animation duration
             } catch (error) {
                 console.error('Submission error:', error);
-                // Fallback success UI even on CORS "error" (since no-cors is used)
+                // Fallback success UI
                 notifyMeRow.style.display = 'none';
                 captchaBox.style.display = 'none';
-                thankYouMsg.style.display = 'block';
+                thankYouMsg.style.display = 'flex';
             } finally {
                 // Security best practice: Reset Turnstile token
                 if (window.turnstile) turnstile.reset();
