@@ -212,7 +212,7 @@
                 <!-- Error and Captcha (Absolutely positioned) -->
                 <div id="error-msg" class="error-message" role="alert"></div>
                 <div id="captcha-box" class="captcha-container">
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAADUv6Jla6kjy8P29" data-callback="onTurnstileSuccess"></div>
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAADUv6Jla6kjy8P29" data-callback="onTurnstileSuccess" data-theme="light" data-size="flexible" data-appearance="interaction-only"></div>
                 </div>
 
                 <div id="thank-you-msg" class="thank-you" aria-live="polite">
@@ -232,6 +232,11 @@
         const thankYouMsg = document.getElementById('thank-you-msg');
         const subtext = document.getElementById('subtext');
         const hpField = document.getElementById('hp-name');
+
+        // Clear form on page load/refresh
+        window.addEventListener('load', () => {
+            form.reset();
+        });
 
         let turnstileToken = null;
 
