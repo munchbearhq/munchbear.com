@@ -250,9 +250,15 @@
         const subtext = document.getElementById('subtext');
         const hpField = document.getElementById('hp-name');
 
-        // Clear form on page load/refresh
+        // Check for returning users who already submitted
         window.addEventListener('load', () => {
-            form.reset();
+            if (localStorage.getItem('munchbear_waitlist_form_submitted') === 'true') {
+                notifyMeRow.style.display = 'none';
+                captchaBox.style.display = 'none';
+                thankYouMsg.style.display = 'flex';
+            } else {
+                form.reset();
+            }
         });
 
         let turnstileToken = null;
@@ -314,6 +320,9 @@
                     body: formData
                 });
 
+                // Mark as submitted for returning visits
+                localStorage.setItem('munchbear_waitlist_form_submitted', 'true');
+
                 // Smooth Transition to Success UI
                 notifyMeRow.classList.add('fade-out');
                 captchaBox.classList.add('fade-out');
@@ -326,6 +335,8 @@
                 }, 300); // Matches fadeOut animation duration
             } catch (error) {
                 console.error('Submission error:', error);
+                // Mark as submitted even on fallback to keep UI consistent
+                localStorage.setItem('munchbear_waitlist_form_submitted', 'true');
                 // Fallback success UI
                 notifyMeRow.style.display = 'none';
                 captchaBox.style.display = 'none';
