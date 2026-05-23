@@ -56,22 +56,24 @@
         }
 
         .form-wrapper {
+            width: 100%;
             max-width: 480px;
             margin: 0 auto;
+            text-align: left;
+            position: relative; /* Anchor for absolute children */
         }
 
-        .notify-me {
+        .input-group {
             display: flex;
             flex-direction: row;
-            flex-wrap: wrap;
             gap: 12px;
-            transition: opacity 0.3s ease;
             align-items: center;
+            width: 100%;
         }
 
         input {
             flex: 1;
-            min-width: 200px;
+            min-width: 0;
             padding: 12px 20px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
@@ -92,12 +94,28 @@
             box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
         }
 
-        .captcha-container {
-            display: none; /* Shown when email is valid */
+        .error-message {
+            display: none;
+            position: absolute;
+            top: 52px; /* Positioned right below the input/button row */
+            left: 0;
+            color: var(--error-color);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding-left: 4px;
             width: 100%;
-            margin: 10px auto 0;
+            z-index: 10;
+        }
+
+        .captcha-container {
+            display: none;
+            position: absolute;
+            top: 75px; /* Positioned below the error message */
+            left: 0;
+            width: 100%;
             min-height: 65px;
-            animation: slideDown 0.3s ease-out;
+            z-index: 5;
+            overflow: hidden;
         }
 
         button {
@@ -133,7 +151,9 @@
             font-size: 1.25rem;
             color: var(--success-color);
             font-weight: 600;
+            text-align: center;
             animation: fadeIn 0.5s ease-out;
+            padding-top: 10px;
         }
 
         /* Honeypot - Hidden from humans */
@@ -156,6 +176,18 @@
         @media (max-width: 480px) {
             h1 { font-size: 2.25rem; }
             p { font-size: 1.1rem; }
+            .input-group {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+            .error-message {
+                top: 105px;
+            }
+            .captcha-container {
+                top: 130px;
+            }
         }
     </style>
 </head>
@@ -165,35 +197,38 @@
         <p id="subtext">We’re cooking up something special.<br>Be the first to know when the bear arrives.</p>
         
         <div class="form-wrapper">
-            <div id="form-container">
-                <div class="notify-me">
-                    <!-- Standard Email Field -->
-                    <input type="email" id="email-input" placeholder="Enter your email address" aria-label="Email address" spellcheck="false">
+            <form id="waitlist-form">
+                <!-- Main Input Row -->
+                <div class="input-group" id="notify-me-row">
+                    <input type="email" id="email-input" placeholder="Enter your email address" aria-label="Email address" spellcheck="false" required>
+                    <button type="submit" id="submit-btn">Notify Me</button>
                     
-                    <button type="button" id="submit-btn">Notify Me</button>
-
-                    <!-- Cloudflare Turnstile Widget -->
-                    <div id="captcha-box" class="captcha-container">
-                        <div class="cf-turnstile" data-sitekey="0x4AAAAAADUv6Jla6kjy8P29" data-callback="onTurnstileSuccess"></div>
-                    </div>
-
                     <!-- Honeypot (Invisible to humans) -->
-                    <div class="hp-field">
+                    <div class="hp-field" aria-hidden="true">
                         <input type="text" id="hp-name" tabindex="-1" autocomplete="off">
                     </div>
                 </div>
-                <div id="thank-you-msg" class="thank-you">
+
+                <!-- Error and Captcha (Absolutely positioned) -->
+                <div id="error-msg" class="error-message" role="alert"></div>
+                <div id="captcha-box" class="captcha-container">
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAADUv6Jla6kjy8P29" data-callback="onTurnstileSuccess"></div>
+                </div>
+
+                <div id="thank-you-msg" class="thank-you" aria-live="polite">
                     Thank you! We'll be in touch soon.
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 
     <script>
+        const form = document.getElementById('waitlist-form');
         const submitBtn = document.getElementById('submit-btn');
         const emailInput = document.getElementById('email-input');
+        const errorMsg = document.getElementById('error-msg');
         const captchaBox = document.getElementById('captcha-box');
-        const notifyMe = document.querySelector('.notify-me');
+        const notifyMeRow = document.getElementById('notify-me-row');
         const thankYouMsg = document.getElementById('thank-you-msg');
         const subtext = document.getElementById('subtext');
         const hpField = document.getElementById('hp-name');
@@ -203,20 +238,30 @@
         // Callback when Turnstile finishes verification
         window.onTurnstileSuccess = function(token) {
             turnstileToken = token;
+            errorMsg.style.display = 'none';
         };
 
         // Robust Email Regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        // Show CAPTCHA when email looks valid
+        // Show/Hide CAPTCHA based on email validity
         emailInput.addEventListener('input', () => {
             emailInput.classList.remove('invalid');
-            if (emailRegex.test(emailInput.value)) {
+            errorMsg.style.display = 'none';
+            
+            if (emailRegex.test(emailInput.value.trim())) {
                 captchaBox.style.display = 'block';
+            } else {
+                captchaBox.style.display = 'none';
+                // Also reset token if they mess up the email after solving
+                if (window.turnstile) turnstile.reset();
+                turnstileToken = null;
             }
         });
 
-        submitBtn.addEventListener('click', async () => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
             const email = emailInput.value.trim();
             const honeypot = hpField.value;
 
@@ -226,13 +271,16 @@
             // 2. Email Validation
             if (!emailRegex.test(email)) {
                 emailInput.classList.add('invalid');
+                errorMsg.innerText = 'Please enter a valid email address.';
+                errorMsg.style.display = 'block';
                 emailInput.focus();
                 return;
             }
 
             // 3. CAPTCHA Check (Turnstile)
             if (!turnstileToken) {
-                alert('Please complete the security check.');
+                errorMsg.innerText = 'Please complete the security check.';
+                errorMsg.style.display = 'block';
                 return;
             }
 
@@ -254,13 +302,20 @@
                 });
 
                 // Success UI
-                notifyMe.style.display = 'none';
+                notifyMeRow.style.display = 'none';
+                captchaBox.style.display = 'none';
+                errorMsg.style.display = 'none';
                 thankYouMsg.style.display = 'block';
                 subtext.innerText = "You're on the list!";
             } catch (error) {
                 console.error('Submission error:', error);
-                notifyMe.style.display = 'none';
+                // Fallback success UI even on CORS "error" (since no-cors is used)
+                notifyMeRow.style.display = 'none';
+                captchaBox.style.display = 'none';
                 thankYouMsg.style.display = 'block';
+            } finally {
+                // Security best practice: Reset Turnstile token
+                if (window.turnstile) turnstile.reset();
             }
         });
     </script>
