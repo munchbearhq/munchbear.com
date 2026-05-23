@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Munchbear | Coming Soon</title>
+    <title>MunchBear | Coming Soon</title>
     <!-- Cloudflare Turnstile Script -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         :root {
-            --bg-color: #f8f9fa;
-            --text-color: #212529;
-            --accent-color: #343a40;
-            --error-color: #dc3545;
-            --success-color: #28a745;
+            --bg-color: #ffffff;
+            --text-color: #0f172a;
+            --accent-color: #4f46e5;
+            --secondary-color: #475569;
+            --error-color: #ef4444;
+            --success-color: #10b981;
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -40,54 +41,61 @@
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 800;
-            letter-spacing: -1px;
+            letter-spacing: -0.025em;
             margin-bottom: 1rem;
-            color: var(--accent-color);
+            color: var(--text-color);
         }
 
         p {
             font-size: 1.25rem;
             line-height: 1.6;
-            color: #6c757d;
-            margin-bottom: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 2.5rem;
         }
 
         .form-wrapper {
-            max-width: 340px;
+            max-width: 480px;
             margin: 0 auto;
         }
 
         .notify-me {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 12px;
             transition: opacity 0.3s ease;
+            align-items: center;
         }
 
         input {
+            flex: 1;
+            min-width: 200px;
             padding: 12px 20px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 1rem;
-            width: 100%;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.95rem;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #f8fafc;
         }
 
         input:focus {
-            border-color: #adb5bd;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            background-color: white;
         }
 
         input.invalid {
             border-color: var(--error-color);
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
         }
 
         .captcha-container {
             display: none; /* Shown when email is valid */
-            margin: 0 auto;
+            width: 100%;
+            margin: 10px auto 0;
             min-height: 65px;
             animation: slideDown 0.3s ease-out;
         }
@@ -97,15 +105,18 @@
             background-color: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
+            white-space: nowrap;
         }
 
         button:hover {
-            background-color: #23272b;
+            background-color: #4338ca;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2), 0 4px 6px -2px rgba(79, 70, 229, 0.1);
         }
 
         button:active {
@@ -150,15 +161,17 @@
 </head>
 <body>
     <div class="container">
-        <h1>Munchbear</h1>
-        <p id="subtext">Our website is currently under construction. Something exciting is coming soon.</p>
+        <h1>MunchBear</h1>
+        <p id="subtext">We’re cooking up something special.<br>Be the first to know when the bear arrives.</p>
         
         <div class="form-wrapper">
             <div id="form-container">
                 <div class="notify-me">
                     <!-- Standard Email Field -->
-                    <input type="email" id="email-input" placeholder="Enter your email" aria-label="Email address" spellcheck="false">
+                    <input type="email" id="email-input" placeholder="Enter your email address" aria-label="Email address" spellcheck="false">
                     
+                    <button type="button" id="submit-btn">Notify Me</button>
+
                     <!-- Cloudflare Turnstile Widget -->
                     <div id="captcha-box" class="captcha-container">
                         <div class="cf-turnstile" data-sitekey="0x4AAAAAADUv6Jla6kjy8P29" data-callback="onTurnstileSuccess"></div>
@@ -168,8 +181,6 @@
                     <div class="hp-field">
                         <input type="text" id="hp-name" tabindex="-1" autocomplete="off">
                     </div>
-
-                    <button type="button" id="submit-btn">Notify Me</button>
                 </div>
                 <div id="thank-you-msg" class="thank-you">
                     Thank you! We'll be in touch soon.
