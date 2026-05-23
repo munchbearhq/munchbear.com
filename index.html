@@ -26,6 +26,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <!-- Cloudflare Turnstile Script -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script>
+        // Immediate check to prevent UI flicker on refresh
+        if (localStorage.getItem('munchbear_waitlist_form_submitted') === 'true') {
+            document.documentElement.classList.add('form-submitted');
+        } else {
+            // Ensure form is fresh on reload if not submitted
+            window.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('waitlist-form')?.reset();
+            });
+        }
+    </script>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -35,6 +46,15 @@
             --error-color: #ef4444;
             --success-color: #10b981;
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Prevent flash of unsubmitted content */
+        .form-submitted #notify-me-row,
+        .form-submitted #captcha-box {
+            display: none !important;
+        }
+        .form-submitted #thank-you-msg {
+            display: flex !important;
         }
 
         * {
@@ -279,17 +299,6 @@
         const subtext = document.getElementById('subtext');
         const hpField = document.getElementById('hp-name');
 
-        // Check for returning users who already submitted
-        window.addEventListener('load', () => {
-            if (localStorage.getItem('munchbear_waitlist_form_submitted') === 'true') {
-                notifyMeRow.style.display = 'none';
-                captchaBox.style.display = 'none';
-                thankYouMsg.style.display = 'flex';
-            } else {
-                form.reset();
-            }
-        });
-
         let turnstileToken = null;
 
         // Callback when Turnstile finishes verification
@@ -358,18 +367,13 @@
                 errorMsg.style.display = 'none';
 
                 setTimeout(() => {
-                    notifyMeRow.style.display = 'none';
-                    captchaBox.style.display = 'none';
-                    thankYouMsg.style.display = 'flex';
+                    document.documentElement.classList.add('form-submitted');
                 }, 300); // Matches fadeOut animation duration
             } catch (error) {
                 console.error('Submission error:', error);
                 // Mark as submitted even on fallback to keep UI consistent
                 localStorage.setItem('munchbear_waitlist_form_submitted', 'true');
-                // Fallback success UI
-                notifyMeRow.style.display = 'none';
-                captchaBox.style.display = 'none';
-                thankYouMsg.style.display = 'flex';
+                document.documentElement.classList.add('form-submitted');
             } finally {
                 // Security best practice: Reset Turnstile token
                 if (window.turnstile) turnstile.reset();
