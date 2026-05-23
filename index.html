@@ -108,7 +108,7 @@
         }
 
         .captcha-container {
-            display: none;
+            display: block;
             position: absolute;
             top: 75px; /* Positioned below the error message */
             left: 0;
@@ -149,11 +149,11 @@
         .thank-you {
             display: none;
             font-size: 1.25rem;
-            color: var(--success-color);
+            color: var(--accent-color);
             font-weight: 600;
             text-align: center;
             animation: fadeIn 0.5s ease-out;
-            padding-top: 10px;
+            padding: 12px 0; /* Matches the vertical space of the input/button */
         }
 
         /* Honeypot - Hidden from humans */
@@ -188,6 +188,9 @@
             .captcha-container {
                 top: 130px;
             }
+            .thank-you {
+                padding: 40px 0; /* Matches the taller stacked form on mobile */
+            }
         }
     </style>
 </head>
@@ -216,7 +219,7 @@
                 </div>
 
                 <div id="thank-you-msg" class="thank-you" aria-live="polite">
-                    Thank you! We'll be in touch soon.
+                    Thank you! You're on the list.
                 </div>
             </form>
         </div>
@@ -249,19 +252,10 @@
         // Robust Email Regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        // Show/Hide CAPTCHA based on email validity
+        // Handle input changes
         emailInput.addEventListener('input', () => {
             emailInput.classList.remove('invalid');
             errorMsg.style.display = 'none';
-            
-            if (emailRegex.test(emailInput.value.trim())) {
-                captchaBox.style.display = 'block';
-            } else {
-                captchaBox.style.display = 'none';
-                // Also reset token if they mess up the email after solving
-                if (window.turnstile) turnstile.reset();
-                turnstileToken = null;
-            }
         });
 
         form.addEventListener('submit', async (e) => {
@@ -311,7 +305,6 @@
                 captchaBox.style.display = 'none';
                 errorMsg.style.display = 'none';
                 thankYouMsg.style.display = 'block';
-                subtext.innerText = "You're on the list!";
             } catch (error) {
                 console.error('Submission error:', error);
                 // Fallback success UI even on CORS "error" (since no-cors is used)
